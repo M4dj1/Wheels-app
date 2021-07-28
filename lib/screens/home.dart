@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:flutter_map_location/flutter_map_location.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key, required this.title}) : super(key: key);
@@ -12,82 +11,98 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  MapController controller = new MapController();
-  Future<Position> _determinePosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    // Test if location services are enabled.
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      // Location services are not enabled don't continue
-      // accessing the position and request users of the
-      // App to enable the location services.
-      return Future.error('Location services are disabled.');
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        // Permissions are denied, next time you could try
-        // requesting permissions again (this is also where
-        // Android's shouldShowRequestPermissionRationale
-        // returned true. According to Android guidelines
-        // your App should show an explanatory UI now.
-        return Future.error('Location permissions are denied');
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      // Permissions are denied forever, handle appropriately.
-      return Future.error(
-          'Location permissions are permanently denied, we cannot request permissions.');
-    }
-
-    // When we reach here, permissions are granted and we can
-    // continue accessing the position of the device.
-    return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-  }
-
-  buildMap() {
-    _determinePosition().then((value) {
-      controller.move(new LatLng(value.latitude, value.longitude), 16.0);
-    });
-  }
+  MapController mapController = new MapController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: new FlutterMap(
-      mapController: controller,
-      options: new MapOptions(
-        center: buildMap(),
-        zoom: 16.0,
-      ),
-      layers: [
-        TileLayerOptions(
-            urlTemplate:
-                "https://api.mapbox.com/styles/v1/madji/ckrmk1ixd2alh17pdvnx8ne1w/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoibWFkamkiLCJhIjoiY2tybWc4NWYwMHZvejJwbDdibjd2NXBqZCJ9.uJ_fye7QXBKBjBznsmIe1g",
-            additionalOptions: {
-              'accessToken':
-                  'pk.eyJ1IjoibWFkamkiLCJhIjoiY2tybWc4NWYwMHZvejJwbDdibjd2NXBqZCJ9.uJ_fye7QXBKBjBznsmIe1g',
-              'id': 'mapbox.mapbox-streets-v8'
-            }),
-        MarkerLayerOptions(
-          markers: [
-            Marker(
-              width: 80.0,
-              height: 80.0,
-              point: LatLng(35.54811895287809, 6.157130518857517),
-              builder: (ctx) => Container(
-                child: FlutterLogo(),
-              ),
-            ),
+        body: Center(
+      child: FlutterMap(
+        mapController: mapController,
+        options: MapOptions(
+          minZoom: 8.5,
+          maxZoom: 17.0,
+          interactiveFlags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
+          plugins: <MapPlugin>[
+            LocationPlugin(),
           ],
         ),
-      ],
+        layers: <LayerOptions>[
+          TileLayerOptions(
+              urlTemplate:
+                  "https://api.mapbox.com/styles/v1/madji/ckrmk1ixd2alh17pdvnx8ne1w/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoibWFkamkiLCJhIjoiY2tybWc4NWYwMHZvejJwbDdibjd2NXBqZCJ9.uJ_fye7QXBKBjBznsmIe1g",
+              additionalOptions: {
+                'accessToken':
+                    'pk.eyJ1IjoibWFkamkiLCJhIjoiY2tybWc4NWYwMHZvejJwbDdibjd2NXBqZCJ9.uJ_fye7QXBKBjBznsmIe1g',
+                'id': 'mapbox.mapbox-streets-v8'
+              }),
+        ],
+        nonRotatedLayers: <LayerOptions>[
+          LocationOptions(
+            locationButton(),
+            onLocationUpdate: (LatLngData? ld) {
+              print(
+                  'Location updated: ${ld?.location} (accuracy: ${ld?.accuracy})');
+            },
+            onLocationRequested: (LatLngData? ld) {
+              if (ld == null) {
+                return;
+              }
+              mapController.move(ld.location, 16.5);
+            },
+            markerBuilder: (BuildContext context, LatLngData ld,
+                ValueNotifier<double?> heading) {
+              return Marker(
+                point: ld.location,
+                builder: (_) => Container(
+                  child: Column(
+                    children: <Widget>[
+                      Stack(
+                        alignment: AlignmentDirectional.center,
+                        children: <Widget>[
+                          Container(
+                            decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.amber.shade800.withOpacity(0.7)),
+                            height: 40.0,
+                            width: 40.0,
+                          ),
+                          const Icon(
+                            Icons.hail_outlined,
+                            size: 30.0,
+                            color: Colors.redAccent,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                height: 60.0,
+                width: 60.0,
+              );
+            },
+          ),
+        ],
+      ),
     ));
+  }
+
+  LocationButtonBuilder locationButton() {
+    return (BuildContext context, ValueNotifier<LocationServiceStatus> status,
+        Function onPressed) {
+      return Align(
+        alignment: Alignment.topRight,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 50.0, right: 20.0),
+          child: FloatingActionButton(
+              backgroundColor: Colors.amber[800],
+              child: const Icon(
+                Icons.location_searching,
+                color: Colors.redAccent,
+              ),
+              onPressed: () => onPressed()),
+        ),
+      );
+    };
   }
 }
