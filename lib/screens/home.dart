@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:ionicons/ionicons.dart';
 import 'package:flutter_map_location/flutter_map_location.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -30,7 +31,7 @@ class _MyHomePageState extends State<MyHomePage> {
         layers: <LayerOptions>[
           TileLayerOptions(
               urlTemplate:
-                  "https://api.mapbox.com/styles/v1/madji/ckrmk1ixd2alh17pdvnx8ne1w/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoibWFkamkiLCJhIjoiY2tybWc4NWYwMHZvejJwbDdibjd2NXBqZCJ9.uJ_fye7QXBKBjBznsmIe1g",
+                  "https://api.mapbox.com/styles/v1/madji/ckrn1yjx82bos19o1y805hvbf/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoibWFkamkiLCJhIjoiY2tybWc4NWYwMHZvejJwbDdibjd2NXBqZCJ9.uJ_fye7QXBKBjBznsmIe1g",
               additionalOptions: {
                 'accessToken':
                     'pk.eyJ1IjoibWFkamkiLCJhIjoiY2tybWc4NWYwMHZvejJwbDdibjd2NXBqZCJ9.uJ_fye7QXBKBjBznsmIe1g',
@@ -63,14 +64,14 @@ class _MyHomePageState extends State<MyHomePage> {
                           Container(
                             decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Colors.amber.shade800.withOpacity(0.7)),
+                                color: Colors.cyan.withOpacity(0.3)),
                             height: 40.0,
                             width: 40.0,
                           ),
                           const Icon(
-                            Icons.hail_outlined,
+                            Ionicons.walk_sharp,
                             size: 30.0,
-                            color: Colors.redAccent,
+                            color: Colors.cyan,
                           ),
                         ],
                       ),
@@ -95,10 +96,11 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Padding(
           padding: const EdgeInsets.only(top: 50.0, right: 20.0),
           child: FloatingActionButton(
-              backgroundColor: Colors.amber[800],
+              backgroundColor: Colors.blueGrey[100],
               child: const Icon(
-                Icons.location_searching,
-                color: Colors.redAccent,
+                Ionicons.planet,
+                color: Colors.cyan,
+                size: 40.0,
               ),
               onPressed: () => onPressed()),
         ),
